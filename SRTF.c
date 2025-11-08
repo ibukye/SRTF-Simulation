@@ -121,10 +121,16 @@ int main() {
         if (All_Process[shortest_index].RemainingBurstTime == 0) {
             All_Process[shortest_index].status = COMPLETED;
             completed_count++;
-            All_Process[shortest_index].CompletionTime = current_time;
+            All_Process[shortest_index].CompletionTime = current_time+1;    // record the completion time after incremented
         }
 
         // REVIEW & TABLE OF THE PROCESSING (?)
+        
+        //PRINT ALL PROCESS FOR DEBUG
+        for (int i = 0; i < num_of_process; i++) {
+            Process p = All_Process[i];
+            printf("Process  %d: ArrivalTime: %d, BurstTime: %d, RemainingBurstTime: %d, CompletionTime: %d", p.ID, p.ArrivalTime, p.BurstTime, p.RemainingBurstTime, p.CompletionTime);
+        }
 
         // Update time
         current_time++;
