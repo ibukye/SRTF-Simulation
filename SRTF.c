@@ -81,6 +81,17 @@ int search_shortest(int num_of_process, Process *All_Process, int current_time) 
 }*/
 
 
+// get status char
+char* get_status(int status) {
+    switch (status) {
+        case READY: return "READY";
+        case RUNNING: return "RUNNING";
+        case COMPLETED: return "COMPLETED";
+        default: return "NONE";
+    }
+}
+
+
 
 
 
@@ -106,8 +117,10 @@ int main() {
     // 2. Initialize the all process
     initialize_process(num_of_process, All_Process);
 
-    // 3. Main Loop
+    // Print the progression table 
+    printf("%5s | %10s | %12s | %15s|\n", "Time", "Process ID", "Status", "Remaining Time");
 
+    // 3. Main Loop
     while (completed_count < num_of_process) {
         // find shortest
         int shortest_index = search_shortest(num_of_process, All_Process, current_time);
@@ -123,17 +136,21 @@ int main() {
             completed_count++;
             All_Process[shortest_index].CompletionTime = current_time+1;    // record the completion time after incremented
         }
-
-        // REVIEW & TABLE OF THE PROCESSING (?)
         
         //PRINT ALL PROCESS FOR DEBUG
-        for (int i = 0; i < num_of_process; i++) {
+        /*for (int i = 0; i < num_of_process; i++) {
             Process p = All_Process[i];
-            printf("Process  %d: ArrivalTime: %d, BurstTime: %d, RemainingBurstTime: %d, CompletionTime: %d", p.ID, p.ArrivalTime, p.BurstTime, p.RemainingBurstTime, p.CompletionTime);
-        }
+            printf("Process  %d: ArrivalTime: %d, BurstTime: %d, RemainingBurstTime: %d, CompletionTime: %d\n", p.ID, p.ArrivalTime, p.BurstTime, p.RemainingBurstTime, p.CompletionTime);
+        }*/
 
         // Update time
         current_time++;
 
+
+        // REVIEW & TABLE OF THE PROCESSING (?)
+        Process p = All_Process[shortest_index];
+        // get char from status
+
+        printf("%5d | P%10d | %12s | %15d |\n", current_time, p.ID, get_status(p.status), p.RemainingBurstTime);
     }
 }
