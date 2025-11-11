@@ -16,6 +16,7 @@ typedef struct {
     int status;
     int TrunAroundTime;
     int WaitingTime;
+    int ResponseTime;
 } Process;
 
 // implementation & usage of ready queue might increase overhead
@@ -46,6 +47,7 @@ void initialize_process(int num_of_process, Process *All_Process) {
         process.BurstTime = BT;
         process.RemainingBurstTime = BT;
         process.CompletionTime = 0;
+        process.ResponseTime = 10000;
         
         All_Process[i] = process;
     }
@@ -127,6 +129,10 @@ int main() {
         // update the current process
 
         // RUN (decrement by one unit time)
+        // if current time is smaller than the initial response time
+        if (current_time < All_Process[shortest_index].ResponseTime ) {
+            All_Process[shortest_index].ResponseTime = current_time;
+        }
         All_Process[shortest_index].RemainingBurstTime--;
         All_Process[shortest_index].status = RUNNING;
 
@@ -137,20 +143,34 @@ int main() {
             All_Process[shortest_index].CompletionTime = current_time+1;    // record the completion time after incremented
         }
         
-        //PRINT ALL PROCESS FOR DEBUG
-        /*for (int i = 0; i < num_of_process; i++) {
-            Process p = All_Process[i];
-            printf("Process  %d: ArrivalTime: %d, BurstTime: %d, RemainingBurstTime: %d, CompletionTime: %d\n", p.ID, p.ArrivalTime, p.BurstTime, p.RemainingBurstTime, p.CompletionTime);
-        }*/
-
         // Update time
         current_time++;
-
 
         // REVIEW & TABLE OF THE PROCESSING (?)
         Process p = All_Process[shortest_index];
         // get char from status
-
         printf("%5d | P%10d | %12s | %15d |\n", current_time, p.ID, get_status(p.status), p.RemainingBurstTime);
     }
+
+    // SRTF PERFORMANCE RESULTS
+    // for Average Turnaround Time, Waiting Time
+    float Avg_TAT = 0.0;
+    float Avg_WT = 0.0;
+    for (int i = 0; i < num_of_process; i++) {
+        Process p = All_Process[i];
+        
+        // TAT = CT - AT
+        p.TrunAroundTime = p.CompletionTime - p.ArrivalTime;
+        Avg_TAT += p.TrunAroundTime;
+        
+        // WT = TAT - BT
+        p.WaitingTime = p.TrunAroundTime - p.BurstTime;
+        Avg_WT += p.WaitingTime;
+        
+        // Response Time (initial process - AT)
+
+        // PRINT
+        printf("Process %d: Turnaround = %d, Waiting = %d, Response = %d\n", p.ID, p.TrunAroundTime, p.WaitingTime, p.ResponseTime-p.ArrivalTime);
+    }
+    printf("\nAverage Turnaround Time = %.2f\nAverage Waiting Time = %.2f", Avg_TAT/num_of_process, Avg_WT/num_of_process);
 }
