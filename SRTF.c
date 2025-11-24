@@ -126,7 +126,6 @@ int main() {
     while (completed_count < num_of_process) {
         // find shortest
         int shortest_index = search_shortest(num_of_process, All_Process, current_time);
-        // update the current process
 
         // RUN (decrement by one unit time)
         // if current time is smaller than the initial response time
