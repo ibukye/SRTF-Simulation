@@ -1,0 +1,25 @@
+Enter number of processes (1-10): Process 1
+Arrival (non-negative number): Burst (non-negative number): Error: Burst time must be greater than 0. Enter again: 
+ Time | Process ID |    Status    | Remaining Time |
+------|------------|--------------|----------------|
+    0 |     P1     |    READY     |       5        |
+    0 |     P1     |   RUNNING    |       5        |
+    1 |     P1     |   RUNNING    |       4        |
+    2 |     P1     |   RUNNING    |       3        |
+    3 |     P1     |   RUNNING    |       2        |
+    4 |     P1     |   RUNNING    |       1        |
+    5 |     P1     |  COMPLETED   |       0        |
+
+
+--- Visual Gantt Chart ---
+
+|  P1   |
+0       5      
+
+
+--- SRTF Performance Results ---
+Process 1: Turnaround = 5, Waiting = 0, Response = 0
+
+Average Turnaround Time = 5.00
+Average Waiting Time = 0.00
+Average Response Time = 0.00

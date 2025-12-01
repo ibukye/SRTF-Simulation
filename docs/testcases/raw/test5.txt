@@ -1,0 +1,63 @@
+Enter number of processes (1-10): Process 1
+Arrival (non-negative number): Burst (non-negative number): 
+Process 2
+Arrival (non-negative number): Burst (non-negative number): 
+Process 3
+Arrival (non-negative number): Burst (non-negative number): 
+Process 4
+Arrival (non-negative number): Burst (non-negative number): 
+Process 5
+Arrival (non-negative number): Burst (non-negative number): 
+ Time | Process ID |    Status    | Remaining Time |
+------|------------|--------------|----------------|
+    0 |     P1     |    READY     |       3        |
+    0 |     P1     |   RUNNING    |       3        |
+    1 |     P1     |   RUNNING    |       2        |
+    2 |     P1     |   RUNNING    |       1        |
+    3 |     P1     |  COMPLETED   |       0        |
+    3 |     P4     |    READY     |       4        |
+    3 |     P4     |   RUNNING    |       4        |
+    4 |     P4     |   RUNNING    |       3        |
+    5 |     P4     |   RUNNING    |       2        |
+    6 |     P4     |   RUNNING    |       1        |
+    7 |     P4     |  COMPLETED   |       0        |
+    7 |     P3     |    READY     |       6        |
+    7 |     P3     |   RUNNING    |       6        |
+    8 |     P3     |   RUNNING    |       5        |
+    9 |     P3     |   RUNNING    |       4        |
+   10 |     P5     |    READY     |       2        |
+   10 |     P5     |   RUNNING    |       2        |
+   11 |     P5     |   RUNNING    |       1        |
+   12 |     P5     |  COMPLETED   |       0        |
+   12 |     P3     |   RUNNING    |       3        |
+   13 |     P3     |   RUNNING    |       2        |
+   14 |     P3     |   RUNNING    |       1        |
+   15 |     P3     |  COMPLETED   |       0        |
+   15 |     P2     |    READY     |       8        |
+   15 |     P2     |   RUNNING    |       8        |
+   16 |     P2     |   RUNNING    |       7        |
+   17 |     P2     |   RUNNING    |       6        |
+   18 |     P2     |   RUNNING    |       5        |
+   19 |     P2     |   RUNNING    |       4        |
+   20 |     P2     |   RUNNING    |       3        |
+   21 |     P2     |   RUNNING    |       2        |
+   22 |     P2     |   RUNNING    |       1        |
+   23 |     P2     |  COMPLETED   |       0        |
+
+
+--- Visual Gantt Chart ---
+
+|  P1   |  P4   |  P3   |  P5   |  P3   |  P2   |
+0       3       7       10      12      15      23     
+
+
+--- SRTF Performance Results ---
+Process 1: Turnaround = 3, Waiting = 0, Response = 0
+Process 2: Turnaround = 22, Waiting = 14, Response = 14
+Process 3: Turnaround = 13, Waiting = 7, Response = 5
+Process 4: Turnaround = 4, Waiting = 0, Response = 0
+Process 5: Turnaround = 2, Waiting = 0, Response = 0
+
+Average Turnaround Time = 8.80
+Average Waiting Time = 4.20
+Average Response Time = 3.80

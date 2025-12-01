@@ -30,3 +30,36 @@
     - Renamed `num_of_process` to `num_processes`.
     - Removed unused `<ctype.h>`.
 - **Status**: Implemented.
+
+## Step 5: Design Refactoring (Context & Enums)
+- **Issue**: Global variables (`global_mutex`, `Log`, etc.) made the code hard to test and maintain. State was represented by macros (`#define READY 0`) lacking type safety.
+- **Fix**: 
+    - Introduced `SimulationContext` struct to hold all shared state.
+    - Introduced `process_state_t` enum for type-safe state management.
+    - Updated functions to accept `SimulationContext*` instead of relying on globals.
+- **Status**: Implemented.
+
+## Step 6: Memory Management
+- **Issue**: `Process processes[num_processes]` used Variable Length Arrays (VLA), which can cause stack overflow and are not standard in all C versions (e.g., MSVC).
+- **Fix**: 
+    - Changed to dynamic allocation using `calloc`.
+    - Added `free` at the end of `main`.
+- **Status**: Implemented.
+
+## Step 7: Input/Output Cleanup
+- **Issue**: `scanf` loops were repetitive and fragile. `sprintf` was unsafe.
+- **Fix**: 
+    - Created `read_int` helper function using `fgets` and `strtol` for robust input parsing.
+    - Replaced `sprintf` with `snprintf` to prevent buffer overflows.
+    - Defined constants for column widths (`COL_WIDTH_PID`, etc.).
+- **Status**: Implemented.
+
+## Step 8: Synchronization & Error Handling (Robustness)
+- **Issue**: System calls (`pthread_mutex_lock`, etc.) were not checked for errors. Thread creation failure caused resource leaks. Log buffer overflow was ignored.
+- **Fix**: 
+    - Added `check_pthread` helper to validate all thread-related calls.
+    - Implemented `goto cleanup` pattern in `run_scheduler` to safely release resources on failure.
+    - Added explicit overflow check in `add_log`.
+    - Added design justification comments for the "lock-step" synchronization model.
+- **Status**: Implemented.
+
