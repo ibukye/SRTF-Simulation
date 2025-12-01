@@ -88,12 +88,6 @@ void *process_thread_function(void *arg) {
 }
 
 // 1. Receive the process info
-/*
-Process 1: Arrival = 0, Burst = 7
-Process 2: Arrival = 2, Burst = 4
-Process 3: Arrival = 4, Burst = 1
-Process 4: Arrival = 5, Burst = 4
-*/
 void initialize_process(int num_of_process, Process *All_Process) {
   for (int i = 0; i < num_of_process; i++) {
     int AT, BT; // ArrivalTime, BurstTime
@@ -253,6 +247,24 @@ void gantt_chart(GanttLog *Log, int log_index) {
   printf("%-7d\n", final_time);
 }
 
+// Helper to print a row in the progression table
+void print_row(int time, const char *pid_str, const char *status_str,
+               const char *rem_str) {
+  int w_pid = 12, w_stat = 14, w_rem = 16;
+
+  int l_pid = (w_pid - (int)strlen(pid_str)) / 2;
+  int r_pid = w_pid - (int)strlen(pid_str) - l_pid;
+
+  int l_stat = (w_stat - (int)strlen(status_str)) / 2;
+  int r_stat = w_stat - (int)strlen(status_str) - l_stat;
+
+  int l_rem = (w_rem - (int)strlen(rem_str)) / 2;
+  int r_rem = w_rem - (int)strlen(rem_str) - l_rem;
+
+  printf("%5d |%*s%s%*s|%*s%s%*s|%*s%s%*s|\n", time, l_pid, "", pid_str, r_pid,
+         "", l_stat, "", status_str, r_stat, "", l_rem, "", rem_str, r_rem, "");
+}
+
 // Main
 int main() {
   int current_time = 0;              // timer
@@ -323,25 +335,10 @@ int main() {
       if (All_Process[shortest_index].ResponseTime == -1) {
         All_Process[shortest_index].ResponseTime = current_time;
 
-        char pid_str[14], stat_str[16], rem_str[18];
+        char pid_str[14], rem_str[18];
         sprintf(pid_str, "P%d", All_Process[shortest_index].ID);
-        strcpy(stat_str, "READY");
         sprintf(rem_str, "%d", All_Process[shortest_index].RemainingBurstTime);
-        int w_pid = 12, w_stat = 14, w_rem = 16;
-
-        // calc the padding
-        int l_pid = (w_pid - (int)strlen(pid_str)) / 2;
-        int r_pid = w_pid - (int)strlen(pid_str) - l_pid;
-
-        int l_stat = (w_stat - (int)strlen(stat_str)) / 2;
-        int r_stat = w_stat - (int)strlen(stat_str) - l_stat;
-
-        int l_rem = (w_rem - (int)strlen(rem_str)) / 2;
-        int r_rem = w_rem - (int)strlen(rem_str) - l_rem;
-
-        printf("%5d |%*s%s%*s|%*s%s%*s|%*s%s%*s|\n", current_time, l_pid, "",
-               pid_str, r_pid, "", l_stat, "", stat_str, r_stat, "", l_rem, "",
-               rem_str, r_rem, "");
+        print_row(current_time, pid_str, "READY", rem_str);
       }
 
       All_Process[shortest_index].status = RUNNING;
@@ -352,21 +349,11 @@ int main() {
 
       // Print RUNNING log
       {
-        char pid_str[12], stat_str[12], rem_str[18];
+        char pid_str[12], rem_str[18];
         sprintf(pid_str, "P%d", All_Process[shortest_index].ID);
-        strcpy(stat_str, get_status(All_Process[shortest_index].status));
         sprintf(rem_str, "%d", All_Process[shortest_index].RemainingBurstTime);
-        int w_pid = 12, w_stat = 14, w_rem = 16;
-        int l_pid = (w_pid - (int)strlen(pid_str)) / 2;
-        int r_pid = w_pid - (int)strlen(pid_str) - l_pid;
-        int l_stat = (w_stat - (int)strlen(stat_str)) / 2;
-        int r_stat = w_stat - (int)strlen(stat_str) - l_stat;
-        int l_rem = (w_rem - (int)strlen(rem_str)) / 2;
-        int r_rem = w_rem - (int)strlen(rem_str) - l_rem;
-
-        printf("%5d |%*s%s%*s|%*s%s%*s|%*s%s%*s|\n", current_time, l_pid, "",
-               pid_str, r_pid, "", l_stat, "", stat_str, r_stat, "", l_rem, "",
-               rem_str, r_rem, "");
+        print_row(current_time, pid_str,
+                  get_status(All_Process[shortest_index].status), rem_str);
       }
 
       // MULTI THREAD
@@ -394,23 +381,9 @@ int main() {
             current_time + 1, All_Process[shortest_index].ID, 0, COMPLETED};
 
         {
-          char pid_str[12], stat_str[12], rem_str[18];
+          char pid_str[12];
           sprintf(pid_str, "P%d", All_Process[shortest_index].ID);
-          strcpy(stat_str, "COMPLETED");
-          sprintf(rem_str, "0");
-
-          int w_pid = 12, w_stat = 14, w_rem = 16;
-          int l_pid = (w_pid - (int)strlen(pid_str)) / 2;
-          int r_pid = w_pid - (int)strlen(pid_str) - l_pid;
-          int l_stat = (w_stat - (int)strlen(stat_str)) / 2;
-          int r_stat = w_stat - (int)strlen(stat_str) - l_stat;
-          int l_rem = (w_rem - (int)strlen(rem_str)) / 2;
-          int r_rem = w_rem - (int)strlen(rem_str) - l_rem;
-
-          // current_time + 1 since after the processing
-          printf("%5d |%*s%s%*s|%*s%s%*s|%*s%s%*s|\n", current_time + 1, l_pid,
-                 "", pid_str, r_pid, "", l_stat, "", stat_str, r_stat, "",
-                 l_rem, "", rem_str, r_rem, "");
+          print_row(current_time + 1, pid_str, "COMPLETED", "0");
         }
       }
 
@@ -420,19 +393,7 @@ int main() {
       // CPU idle
       Log[log_index++] = (GanttLog){current_time, -1, 0, READY};
 
-      char pid_str[12] = "---", stat_str[12] = "IDLE", rem_str[18] = "---";
-      int w_pid = 12, w_stat = 14, w_rem = 16;
-
-      int l_pid = (w_pid - (int)strlen(pid_str)) / 2;
-      int r_pid = w_pid - (int)strlen(pid_str) - l_pid;
-      int l_stat = (w_stat - (int)strlen(stat_str)) / 2;
-      int r_stat = w_stat - (int)strlen(stat_str) - l_stat;
-      int l_rem = (w_rem - (int)strlen(rem_str)) / 2;
-      int r_rem = w_rem - (int)strlen(rem_str) - l_rem;
-
-      printf("%5d |%*s%s%*s|%*s%s%*s|%*s%s%*s|\n", current_time, l_pid, "",
-             pid_str, r_pid, "", l_stat, "", stat_str, r_stat, "", l_rem, "",
-             rem_str, r_rem, "");
+      print_row(current_time, "---", "IDLE", "---");
 
       processing_process_index = -1;
     }
