@@ -1,4 +1,3 @@
-#include <ctype.h>
 #include <limits.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -88,8 +87,8 @@ void *process_thread_function(void *arg) {
 }
 
 // 1. Receive the process info
-void initialize_process(int num_of_process, Process *All_Process) {
-  for (int i = 0; i < num_of_process; i++) {
+void initialize_processes(int num_processes, Process *processes) {
+  for (int i = 0; i < num_processes; i++) {
     int AT, BT; // ArrivalTime, BurstTime
 
     // get user input
@@ -124,40 +123,39 @@ void initialize_process(int num_of_process, Process *All_Process) {
     printf("\n");
 
     // initialize
-    All_Process[i].ID = i + 1;
-    All_Process[i].ArrivalTime = AT;
-    All_Process[i].BurstTime = BT;
-    All_Process[i].RemainingBurstTime = BT;
-    All_Process[i].CompletionTime = 0;
-    All_Process[i].ResponseTime = -1;
-    All_Process[i].status = READY;
+    processes[i].ID = i + 1;
+    processes[i].ArrivalTime = AT;
+    processes[i].BurstTime = BT;
+    processes[i].RemainingBurstTime = BT;
+    processes[i].CompletionTime = 0;
+    processes[i].ResponseTime = -1;
+    processes[i].status = READY;
 
     // intialize variable for multithread
-    All_Process[i].run_permission = 0;
+    processes[i].run_permission = 0;
 
     // init directory the memory to initialize with the correct memory address
-    pthread_cond_init(&All_Process[i].my_cond, NULL);
+    pthread_cond_init(&processes[i].my_cond, NULL);
   }
   return;
 }
 
 // 2. Need to find the Shortest Remaining Time (returns the index of the
 // process)
-int search_shortest(int num_of_process, Process *All_Process,
-                    int current_time) {
+int search_shortest(int num_processes, Process *processes, int current_time) {
   int shortest_index =
       -1; // index of process which has the Shortest Remaining Time
   int min_remaining_time = INT_MAX; // minimum remaining time
 
-  for (int i = 0; i < num_of_process; i++) {
+  for (int i = 0; i < num_processes; i++) {
     // check whether the process is arrived by comparing with current time
-    if (All_Process[i].ArrivalTime <= current_time) {
+    if (processes[i].ArrivalTime <= current_time) {
       // check whether the process is not completed
-      if (All_Process[i].RemainingBurstTime > 0) {
+      if (processes[i].RemainingBurstTime > 0) {
         // find the shortest remaining time
-        if (All_Process[i].RemainingBurstTime < min_remaining_time) {
+        if (processes[i].RemainingBurstTime < min_remaining_time) {
           // Update the SRT
-          min_remaining_time = All_Process[i].RemainingBurstTime;
+          min_remaining_time = processes[i].RemainingBurstTime;
           // Update the index
           shortest_index = i;
         }
@@ -192,7 +190,6 @@ void gantt_chart(GanttLog *Log, int log_index) {
     return;
 
   int current_pid = Log[0].process_id;
-  int start_time = 0;
 
   // print the 1st row
   for (int i = 1; i < log_index; i++) {
@@ -265,44 +262,18 @@ void print_row(int time, const char *pid_str, const char *status_str,
          "", l_stat, "", status_str, r_stat, "", l_rem, "", rem_str, r_rem, "");
 }
 
-// Main
-int main() {
-  int current_time = 0;              // timer
-  int completed_count = 0;           // Count for completed process
-  int num_of_process;                // total number of processes
-  int processing_process_index = -1; // current process
-
-  // Get how many processes are there
-  printf("Enter number of processes (1-10): ");
-  // loop until get valid input
-  while (1) {
-    if (scanf("%d", &num_of_process) == 1) {
-      if (num_of_process <= 0 || num_of_process > 10) {
-        printf("Error: Number must be between 1 and 10. Enter again: ");
-      } else {
-        break;
-      }
-    } else {
-      printf("Invalid input. Please enter a number (1-10): ");
-      // clear the buffer
-      while ((num_of_process = getchar()) != '\n' && num_of_process != EOF)
-        ;
-    }
-  }
-
-  // list for all processes needs to be process
-  Process All_Process[num_of_process];
-
-  // Initialize the all process
-  initialize_process(num_of_process, All_Process);
+// Run the scheduler loop
+void run_scheduler(int num_processes, Process *processes) {
+  int current_time = 0;
+  int completed_count = 0;
+  int processing_process_index = -1;
 
   // create thread
-  for (int i = 0; i < num_of_process; i++) {
-    // create for each process
-    if (pthread_create(&All_Process[i].thread, NULL, process_thread_function,
-                       &All_Process[i]) != 0) {
+  for (int i = 0; i < num_processes; i++) {
+    if (pthread_create(&processes[i].thread, NULL, process_thread_function,
+                       &processes[i]) != 0) {
       printf("Failed to create thread");
-      return 1;
+      return;
     }
   }
 
@@ -312,151 +283,144 @@ int main() {
   printf("------|------------|--------------|----------------|\n");
 
   // Main Loop
-  while (completed_count < num_of_process) {
-    // get the global lock
+  while (completed_count < num_processes) {
     pthread_mutex_lock(&global_mutex);
 
-    // find shortest
     int shortest_index =
-        search_shortest(num_of_process, All_Process, current_time);
+        search_shortest(num_processes, processes, current_time);
 
-    // Check if there is a runnable process
     if (shortest_index != -1) {
-
-      // track for preemption (change process)
       if (processing_process_index != -1 &&
           processing_process_index != shortest_index) {
-        if (All_Process[processing_process_index].status != COMPLETED) {
-          All_Process[processing_process_index].status = READY;
+        if (processes[processing_process_index].status != COMPLETED) {
+          processes[processing_process_index].status = READY;
         }
       }
 
-      // init arrive (print READY)
-      if (All_Process[shortest_index].ResponseTime == -1) {
-        All_Process[shortest_index].ResponseTime = current_time;
-
+      if (processes[shortest_index].ResponseTime == -1) {
+        processes[shortest_index].ResponseTime = current_time;
         char pid_str[14], rem_str[18];
-        sprintf(pid_str, "P%d", All_Process[shortest_index].ID);
-        sprintf(rem_str, "%d", All_Process[shortest_index].RemainingBurstTime);
+        sprintf(pid_str, "P%d", processes[shortest_index].ID);
+        sprintf(rem_str, "%d", processes[shortest_index].RemainingBurstTime);
         print_row(current_time, pid_str, "READY", rem_str);
       }
 
-      All_Process[shortest_index].status = RUNNING;
-
+      processes[shortest_index].status = RUNNING;
       Log[log_index++] =
-          (GanttLog){current_time, All_Process[shortest_index].ID,
-                     All_Process[shortest_index].RemainingBurstTime, RUNNING};
+          (GanttLog){current_time, processes[shortest_index].ID,
+                     processes[shortest_index].RemainingBurstTime, RUNNING};
 
-      // Print RUNNING log
       {
         char pid_str[12], rem_str[18];
-        sprintf(pid_str, "P%d", All_Process[shortest_index].ID);
-        sprintf(rem_str, "%d", All_Process[shortest_index].RemainingBurstTime);
+        sprintf(pid_str, "P%d", processes[shortest_index].ID);
+        sprintf(rem_str, "%d", processes[shortest_index].RemainingBurstTime);
         print_row(current_time, pid_str,
-                  get_status(All_Process[shortest_index].status), rem_str);
+                  get_status(processes[shortest_index].status), rem_str);
       }
 
-      // MULTI THREAD
-      // reset the flag
       tick_completed = 0;
+      processes[shortest_index].run_permission = 1;
+      pthread_cond_signal(&processes[shortest_index].my_cond);
 
-      // permission
-      All_Process[shortest_index].run_permission = 1;
-
-      pthread_cond_signal(&All_Process[shortest_index].my_cond);
-
-      // wait for 1s of process
       while (tick_completed == 0) {
         pthread_cond_wait(&scheduler_cond, &global_mutex);
       }
 
-      // check if the process completed
-      if (All_Process[shortest_index].RemainingBurstTime == 0) {
-        All_Process[shortest_index].status = COMPLETED;
+      if (processes[shortest_index].RemainingBurstTime == 0) {
+        processes[shortest_index].status = COMPLETED;
         completed_count++;
-        All_Process[shortest_index].CompletionTime = current_time + 1;
+        processes[shortest_index].CompletionTime = current_time + 1;
 
-        // record ot the log
         Log[log_index++] = (GanttLog){
-            current_time + 1, All_Process[shortest_index].ID, 0, COMPLETED};
+            current_time + 1, processes[shortest_index].ID, 0, COMPLETED};
 
         {
           char pid_str[12];
-          sprintf(pid_str, "P%d", All_Process[shortest_index].ID);
+          sprintf(pid_str, "P%d", processes[shortest_index].ID);
           print_row(current_time + 1, pid_str, "COMPLETED", "0");
         }
       }
-
       processing_process_index = shortest_index;
-
-    } else { // IDLE (searching for the next runnable processes)
-      // CPU idle
+    } else {
       Log[log_index++] = (GanttLog){current_time, -1, 0, READY};
-
       print_row(current_time, "---", "IDLE", "---");
-
       processing_process_index = -1;
     }
-    // Update time
     current_time++;
-    // unlcok
     pthread_mutex_unlock(&global_mutex);
   }
 
-  // simulation fin
   pthread_mutex_lock(&global_mutex);
   simulation_finished = 1;
-  // fin all thread
-  for (int i = 0; i < num_of_process; i++) {
-    pthread_cond_signal(&All_Process[i].my_cond);
+  for (int i = 0; i < num_processes; i++) {
+    pthread_cond_signal(&processes[i].my_cond);
   }
   pthread_mutex_unlock(&global_mutex);
 
-  // thread join
-  for (int i = 0; i < num_of_process; i++) {
-    pthread_join(All_Process[i].thread, NULL);
+  for (int i = 0; i < num_processes; i++) {
+    pthread_join(processes[i].thread, NULL);
   }
+}
 
-  // result of computation and display
-  //  Gantt Chart
-  gantt_chart(Log, log_index);
-
-  // SRTF PERFORMANCE RESULTS
-  // for Average Turnaround Time, Waiting Time
+// Print performance metrics
+void print_performance_metrics(int num_processes, Process *processes) {
   float Avg_TAT = 0.0;
   float Avg_WT = 0.0;
   float Avg_RT = 0.0;
 
   printf("\n\n--- SRTF Performance Results ---\n");
-  for (int i = 0; i < num_of_process; i++) {
+  for (int i = 0; i < num_processes; i++) {
+    processes[i].TurnaroundTime =
+        processes[i].CompletionTime - processes[i].ArrivalTime;
+    Avg_TAT += processes[i].TurnaroundTime;
 
-    // TAT = CT - AT
-    All_Process[i].TurnaroundTime =
-        All_Process[i].CompletionTime - All_Process[i].ArrivalTime;
-    Avg_TAT += All_Process[i].TurnaroundTime;
+    processes[i].WaitingTime =
+        processes[i].TurnaroundTime - processes[i].BurstTime;
+    Avg_WT += processes[i].WaitingTime;
 
-    // WT = TAT - BT
-    All_Process[i].WaitingTime =
-        All_Process[i].TurnaroundTime - All_Process[i].BurstTime;
-    Avg_WT += All_Process[i].WaitingTime;
-
-    // Response Time (initial process - AT)
-    int response_time = All_Process[i].ResponseTime -
-                        All_Process[i].ArrivalTime; //  応答時間を計算
+    int response_time = processes[i].ResponseTime - processes[i].ArrivalTime;
     Avg_RT += response_time;
 
-    // PRINT
     printf("Process %d: Turnaround = %d, Waiting = %d, Response = %d\n",
-           All_Process[i].ID, All_Process[i].TurnaroundTime,
-           All_Process[i].WaitingTime, response_time);
+           processes[i].ID, processes[i].TurnaroundTime,
+           processes[i].WaitingTime, response_time);
   }
-  printf("\nAverage Turnaround Time = %.2f\n", Avg_TAT / num_of_process);
-  printf("Average Waiting Time = %.2f\n", Avg_WT / num_of_process);
-  printf("Average Response Time = %.2f\n", Avg_RT / num_of_process);
+  printf("\nAverage Turnaround Time = %.2f\n", Avg_TAT / num_processes);
+  printf("Average Waiting Time = %.2f\n", Avg_WT / num_processes);
+  printf("Average Response Time = %.2f\n", Avg_RT / num_processes);
+}
 
-  // release the resource
-  for (int i = 0; i < num_of_process; i++) {
-    pthread_cond_destroy(&All_Process[i].my_cond);
+// Main
+int main() {
+  int num_processes;
+
+  // Get how many processes are there
+  printf("Enter number of processes (1-10): ");
+  while (1) {
+    if (scanf("%d", &num_processes) == 1) {
+      if (num_processes <= 0 || num_processes > 10) {
+        printf("Error: Number must be between 1 and 10. Enter again: ");
+      } else {
+        break;
+      }
+    } else {
+      printf("Invalid input. Please enter a number (1-10): ");
+      while ((num_processes = getchar()) != '\n' && num_processes != EOF)
+        ;
+    }
+  }
+
+  Process processes[num_processes];
+  initialize_processes(num_processes, processes);
+
+  run_scheduler(num_processes, processes);
+
+  gantt_chart(Log, log_index);
+
+  print_performance_metrics(num_processes, processes);
+
+  for (int i = 0; i < num_processes; i++) {
+    pthread_cond_destroy(&processes[i].my_cond);
   }
   pthread_mutex_destroy(&global_mutex);
   pthread_cond_destroy(&scheduler_cond);
