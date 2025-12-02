@@ -1,0 +1,45 @@
+Enter number of processes (1-10): Process 1
+Arrival (non-negative number): Burst (non-negative number): 
+Process 2
+Arrival (non-negative number): Burst (non-negative number): 
+Process 3
+Arrival (non-negative number): Burst (non-negative number): 
+ Time | Process ID |    Status    | Remaining Time |
+------|------------|--------------|----------------|
+    0 |    ---     |     IDLE     |      ---       |
+    1 |    ---     |     IDLE     |      ---       |
+    2 |     P1     |    READY     |       3        |
+    2 |     P1     |   RUNNING    |       3        |
+    3 |     P1     |   RUNNING    |       2        |
+    4 |     P1     |   RUNNING    |       1        |
+    5 |     P1     |  COMPLETED   |       0        |
+    5 |     P2     |    READY     |       6        |
+    5 |     P2     |   RUNNING    |       6        |
+    6 |     P2     |   RUNNING    |       5        |
+    7 |     P2     |   RUNNING    |       4        |
+    8 |     P2     |   RUNNING    |       3        |
+    9 |     P2     |   RUNNING    |       2        |
+   10 |     P2     |   RUNNING    |       1        |
+   11 |     P2     |  COMPLETED   |       0        |
+   11 |     P3     |    READY     |       4        |
+   11 |     P3     |   RUNNING    |       4        |
+   12 |     P3     |   RUNNING    |       3        |
+   13 |     P3     |   RUNNING    |       2        |
+   14 |     P3     |   RUNNING    |       1        |
+   15 |     P3     |  COMPLETED   |       0        |
+
+
+--- Visual Gantt Chart ---
+
+|  IDLE |  P1   |  P2   |  P3   |
+0       2       5       11      15     
+
+
+--- SRTF Performance Results ---
+Process 1: Turnaround = 3, Waiting = 0, Response = 0
+Process 2: Turnaround = 6, Waiting = 0, Response = 0
+Process 3: Turnaround = 8, Waiting = 4, Response = 4
+
+Average Turnaround Time = 5.67
+Average Waiting Time = 1.33
+Average Response Time = 1.33

@@ -1,0 +1,51 @@
+Enter number of processes (1-10): Process 1
+Arrival (non-negative number): Burst (non-negative number): 
+Process 2
+Arrival (non-negative number): Burst (non-negative number): 
+Process 3
+Arrival (non-negative number): Burst (non-negative number): 
+Process 4
+Arrival (non-negative number): Burst (non-negative number): 
+ Time | Process ID |    Status    | Remaining Time |
+------|------------|--------------|----------------|
+    0 |     P1     |    READY     |       7        |
+    0 |     P1     |   RUNNING    |       7        |
+    1 |     P1     |   RUNNING    |       6        |
+    2 |     P2     |    READY     |       4        |
+    2 |     P2     |   RUNNING    |       4        |
+    3 |     P2     |   RUNNING    |       3        |
+    4 |     P3     |    READY     |       1        |
+    4 |     P3     |   RUNNING    |       1        |
+    5 |     P3     |  COMPLETED   |       0        |
+    5 |     P2     |   RUNNING    |       2        |
+    6 |     P2     |   RUNNING    |       1        |
+    7 |     P2     |  COMPLETED   |       0        |
+    7 |     P4     |    READY     |       4        |
+    7 |     P4     |   RUNNING    |       4        |
+    8 |     P4     |   RUNNING    |       3        |
+    9 |     P4     |   RUNNING    |       2        |
+   10 |     P4     |   RUNNING    |       1        |
+   11 |     P4     |  COMPLETED   |       0        |
+   11 |     P1     |   RUNNING    |       5        |
+   12 |     P1     |   RUNNING    |       4        |
+   13 |     P1     |   RUNNING    |       3        |
+   14 |     P1     |   RUNNING    |       2        |
+   15 |     P1     |   RUNNING    |       1        |
+   16 |     P1     |  COMPLETED   |       0        |
+
+
+--- Visual Gantt Chart ---
+
+|  P1   |  P2   |  P3   |  P2   |  P4   |  P1   |
+0       2       4       5       7       11      16     
+
+
+--- SRTF Performance Results ---
+Process 1: Turnaround = 16, Waiting = 9, Response = 0
+Process 2: Turnaround = 5, Waiting = 1, Response = 0
+Process 3: Turnaround = 1, Waiting = 0, Response = 0
+Process 4: Turnaround = 6, Waiting = 2, Response = 2
+
+Average Turnaround Time = 7.00
+Average Waiting Time = 3.00
+Average Response Time = 0.50
