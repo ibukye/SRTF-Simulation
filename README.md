@@ -10,6 +10,13 @@ This project implements a **Shortest Remaining Time First (SRTF)** process sched
 - POSIX Threads library (`libpthread`)
 - Linux/Unix environment (or WSL on Windows)
 
+#### Platform notes
+- **Linux**: Install `build-essential` (Debian/Ubuntu) or the equivalent toolchain package for your distro; `pthread` ships with glibc so no extra work is needed.
+- **macOS**: Install Xcode Command Line Tools (`xcode-select --install`) to obtain `clang` and the POSIX threading library, then use the same build command (the toolchain automatically links pthread).
+- **Windows**:
+  1. Use **WSL** (Ubuntu or Debian recommended) and follow the Linux instructions, or
+  2. Install **MSYS2** / **MinGW-w64** and use `pacman -S mingw-w64-x86_64-gcc` to get GCC with pthread support, then run the same build command inside the MSYS2 shell.
+
 ### Compilation
 Use the following command to compile the program:
 ```bash
@@ -44,7 +51,7 @@ The simulation employs a **Lock-Step** synchronization model to ensure determini
 - **SimulationContext**: All shared state (mutexes, condition variables, logs) is encapsulated in a `SimulationContext` structure, avoiding global variables.
 - **Type Safety**: Process states are managed using a `process_state_t` enum (`READY`, `RUNNING`, `COMPLETED`) rather than integer magic numbers.
 - **Error Handling**: All system calls (`pthread_create`, `mutex_lock`, etc.) are wrapped in a `check_pthread` helper that terminates the program safely with an error message upon failure.
-- **Memory Safety**: Dynamic memory allocation (`calloc`) is used for process structures, and a `goto cleanup` pattern ensures resources are freed even in error paths.
+- **Memory Safety**: Dynamic memory allocation is used for process structures (`calloc`) and the execution log (`realloc`). The log buffer grows automatically to handle any simulation duration, preventing buffer overflows.
 
 ### 4. Trade-offs
 - **Linear Search vs. Heap**: We chose linear search for simplicity and code maintainability given the small constraint ($N \le 10$). A Heap would scale better for $N > 1000$ but adds significant complexity to handle preemption and state updates.
